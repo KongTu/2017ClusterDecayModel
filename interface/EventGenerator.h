@@ -45,7 +45,7 @@ using namespace std;
 #define DELTApp 1.232
 
 double massP[] = {RHO, XI, LAM, K0S, DELTApp, PION, KAON, P, OMEGA};
-double ratioP[] = {0.2, 0.3125, 0.0625,0.125,0.0,0.1125,0.025,0.0625,0.0};
+double ratioP[] = {0.3125, 0.3125, 0.0625,0.125,0.0,0.1125,0.025,0.0625,0.0125};
 double chargeP[] = {0, -1, 0, 0, 2, 1, 1, 1, -1};
 bool IsDecay[] = {true, true, true, true, true, false, false, false, true};
 double dau1[] = {PION, LAM, P, PION, P, 0.0, 0.0, 0.0, LAM};

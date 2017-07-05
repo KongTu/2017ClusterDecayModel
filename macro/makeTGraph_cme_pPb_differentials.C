@@ -9,7 +9,11 @@ const int NdEtaBins = sizeof(dEtaBins) / sizeof(dEtaBins[0]) - 1;
 
 void makeTGraph_cme_pPb_differentials(){
 
-	TFile* file = new TFile("../rootfiles/test.root");
+	TFile* file_data = new TFile("../dataPoints/data_112.root");
+	TH1D* gamma_112 = (TH1D*) file_data->Get("temp2");
+	TH1D* delta     = (TH1D*) file_data->Get("temp6");
+
+	TFile* file = new TFile("../rootfiles/job_4_rho_Xi.root");
 	TH1D* Ntrk = (TH1D*) file->Get("Ntrkoffline");
 	
 	TH1D* QvsdEta[48][3];
@@ -136,6 +140,73 @@ void makeTGraph_cme_pPb_differentials(){
 	base2->Draw();
 	temp3->Draw("Psame");
 	temp4->Draw("Psame");
+
+	TCanvas* c3 = new TCanvas("c3","c3",600,600);
+	gPad->SetLeftMargin(0.20);
+	gPad->SetBottomMargin(0.13);
+	gPad->SetTopMargin(0.06);
+	gPad->SetTicks();
+
+	TH1D* base3 = makeHist("base3", "", "|#Delta#eta|", "#Delta#delta", 48,0,4.8,kBlack);
+
+	base3->GetYaxis()->SetRangeUser(-0.012,0.04);
+	base3->GetXaxis()->SetRangeUser(-0.2, 4.8);
+	base3->GetXaxis()->SetTitleColor(kBlack);
+	
+	fixedFontHist1D(base3,1.1,1.25);
+
+	base3->GetYaxis()->SetTitleOffset(1.3);
+	base3->GetXaxis()->SetTitleOffset(0.95);
+	base3->GetYaxis()->SetTitleSize(base3->GetYaxis()->GetTitleSize()*1.3);
+	base3->GetXaxis()->SetTitleSize(base3->GetXaxis()->GetTitleSize()*1.4);
+	base3->GetYaxis()->SetLabelSize(base3->GetYaxis()->GetLabelSize()*1.4);
+	base3->GetXaxis()->SetLabelSize(base3->GetXaxis()->GetLabelSize()*1.4);
+
+	base3->Draw();
+
+	TH1D* temp5 = (TH1D*) temp4->Clone("temp5");
+	temp5->Add(temp3, -1);
+	temp5->Draw("Psame");
+
+	delta->Draw("Psame");
+
+
+	TCanvas* c4 = new TCanvas("c4","c4",600,600);
+	gPad->SetLeftMargin(0.20);
+	gPad->SetBottomMargin(0.13);
+	gPad->SetTopMargin(0.06);
+	gPad->SetTicks();
+
+	TH1D* base4 = makeHist("base4", "", "|#Delta#eta|", "#Delta#gamma_{112}", 48,0,4.8,kBlack);
+
+	base4->GetYaxis()->SetRangeUser(-0.002,0.004);
+	base4->GetXaxis()->SetRangeUser(-0.2, 4.8);
+	base4->GetXaxis()->SetTitleColor(kBlack);
+	
+	fixedFontHist1D(base4,1.1,1.25);
+
+	base4->GetYaxis()->SetTitleOffset(1.3);
+	base4->GetXaxis()->SetTitleOffset(0.95);
+	base4->GetYaxis()->SetTitleSize(base4->GetYaxis()->GetTitleSize()*1.3);
+	base4->GetXaxis()->SetTitleSize(base4->GetXaxis()->GetTitleSize()*1.4);
+	base4->GetYaxis()->SetLabelSize(base4->GetYaxis()->GetLabelSize()*1.4);
+	base4->GetXaxis()->SetLabelSize(base4->GetXaxis()->GetLabelSize()*1.4);
+
+	base4->Draw();
+
+	TH1D* temp6 = (TH1D*) temp2->Clone("temp6");
+	temp6->Add(temp1, -1);
+	temp6->Draw("Psame");
+
+	gamma_112->Draw("Psame");
+
+
+
+
+
+
+
+
 
 
 

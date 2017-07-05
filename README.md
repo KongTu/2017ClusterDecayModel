@@ -2,6 +2,12 @@
 
 A simple model to test local charge conservation coupled with v2
 
-To compile it, do:
+To compile the code, type:
 
-xxxx
+make
+
+and check all the settings, then type:
+
+./main.app 
+
+

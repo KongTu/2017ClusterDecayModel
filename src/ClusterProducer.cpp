@@ -14,7 +14,7 @@ int main(){
 temp config
 */
 	TH2D* map = (TH2D*) file1->Get("mother_Spectra");
-	f2->SetParameter(0,0.07);//data v2 is about 7% at 185-250.
+	f2->SetParameter(0,0.06);//data v2 is about 7% at 185-250.
 	f2->SetParameter(1,0.0);// event plane is at zero.
 
 	f3->SetParameter(0, 6.59660e+04);
@@ -23,7 +23,7 @@ temp config
 	f3->SetParameter(3, 1.75804e+01);
 
 	double clusterMass = 0.0;//will generate realistically
-	const int Nevents = 3000000;
+	const int Nevents = 1000000;
 
 /*
 */
@@ -31,7 +31,7 @@ temp config
 	TH1D* c2_tracker = new TH1D("c2_tracker","c2",100,-1,1);
 	TH1D* Ntrkoffline = new TH1D("Ntrkoffline","Ntrk", 1000,0,1000);
 	TH1D* Ntrkoffline_Count = new TH1D("Ntrkoffline_Count","Ntrk", 500,0,500);	
-	TH1D* ptspectra = new TH1D("ptspectra","pt", 100,0,10);
+	TH1D* ptspectra = new TH1D("ptspectra","pt", 100,0.0,20);
 
 	TH1D* c3_real[48][3];
 	TH1D* c2_real[48][3];
@@ -86,12 +86,13 @@ Generate events with multiplicity 185<Ntrkoffline<250
 		
 		int mult_counting = 0;
 		TVector3 v3(0,0,0);
-		for(int j = 0; j < int(mult-105); j++){
+		for(int j = 0; j < int(mult-104); j++){
 
 			//step3: start to decay
 
 			clusterMass = evt.GetMotherMass();//according to particle ratio;
-		   
+		   	//clusterMass = XI;
+
 			evt.GenerateParticle( true, map, clusterMass);
 
 			double pt = evt.GetMomPt();
@@ -260,6 +261,7 @@ Generate events with multiplicity 185<Ntrkoffline<250
 	TCanvas* c10 = new TCanvas();
 	gPad->SetLogy(1);
 	ptspectra->Draw();
+	ptspectra->Fit("expo");
 	c10->Print("pt.pdf");
 
 	TCanvas* c11 = new TCanvas();
@@ -267,7 +269,7 @@ Generate events with multiplicity 185<Ntrkoffline<250
 	Ntrkoffline_Count->Draw();
 	c11->Print("Ntrk.pdf");
 
-	TFile f1("./rootfiles/job_2.root","RECREATE");
+	TFile f1("./rootfiles/job_4_rho_Xi.root","RECREATE");
 	Ntrkoffline->Write();
 	c2_tracker->Write();
 
