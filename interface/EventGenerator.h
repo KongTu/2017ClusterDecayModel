@@ -54,11 +54,6 @@ double charge1[] = {+1, 0, +1, +1, +1, 0, 0, 0, 0};
 double charge2[] = {-1, -1, -1, -1, +1, 0, 0, 0, -1};
 const int Nparticles = sizeof(massP) / sizeof(massP[0]) - 1;
 
-TFile* file1 = new TFile("~/cernbox/2015RUN2work/2017ClusterDecayModel/data/rho_map.root"); 
-TFile* file2 = new TFile("~/cernbox/2015RUN2work/2017ClusterDecayModel/data/Ntrkoffline.root");
-TF1* f1 = new TF1("f1","1",-3.14,3.14);//flat phi distribution.
-TF1* f2 = new TF1("f2","1+2*[0]*cos(2*x-2*[1])",-PI,PI);//flow
-TF1* f3 = new TF1("f3","[0]*x*TMath::Exp([1]*x)+[3]*pow(x,[2])",0.3,100);
 TH1D* prop = new TH1D("prop","prop",Nparticles,0,Nparticles);
 
 class Event {

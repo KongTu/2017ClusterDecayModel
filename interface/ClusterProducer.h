@@ -39,6 +39,14 @@ int dEtaBins[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,24,26,
 double dEtaBinsArray[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,24,26,28,30,34,38,42,48};
 const int NdEtaBins = sizeof(dEtaBins) / sizeof(dEtaBins[0]) - 1;
 
+TFile* file1 = new TFile("~/cernbox/2015RUN2work/2017ClusterDecayModel/data/rho_map.root"); 
+TFile* file2 = new TFile("~/cernbox/2015RUN2work/2017ClusterDecayModel/data/Ntrkoffline.root");
+TF1* f1 = new TF1("f1","1",-3.14,3.14);//flat phi distribution.
+TF1* f2 = new TF1("f2","1+2*[0]*cos(2*x-2*[1])",-PI,PI);//flow
+TF1* f3 = new TF1("f3","[0]*x*TMath::Exp([1]*x)+[3]*pow(x,[2])",0.01,3);
+TF1* f4 = new TF1("f4","1",-5,5);//flat eta distribution.
+TF1* f5 = new TF1("f5","[0]*TMath::Exp([1]*x)+[2]",0.3,2.0);
+
 vector<double> get4Momentum(double pt, double eta, double phi, double mass)
 {
   double polar_angle = 2*TMath::ATan( TMath::Exp(-eta) );

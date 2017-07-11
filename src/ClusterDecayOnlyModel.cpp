@@ -13,26 +13,54 @@ int main(){
 
 /*
 temp config
+free parameters are:
+
+1. v2 of the clusters, 
+2. mass distribution of clusters,
+3. Number of daughters, 
+4. daughters' mass contributions,
+5. mother cluster's momentum,
 */
-	TH2D* map = (TH2D*) file1->Get("mother_Spectra");
-	f2->SetParameter(0,0.06);//data v2 is about 7% at 185-250.
+
+TH2D* map = (TH2D*) file1->Get("mother_Spectra");
+
+double pt_slope[] = {-0.1,-0.3,-0.5,-0.7,-0.9,-1.1,-1.3,-1.5,-1.7,-1.9,-2.2,-2.4,-2.6,-3.0};
+double Nbody[] = {0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.75,0.79};
+double mass_slope[] = {-0.2,-0.4,-0.6,-0.8,-1.0,-1.2,-1.4,-1.8,-2.2,-3.0};
+int momentumCons[] = {2,3,4,10,15,20,30,40,120,300};
+
+for( int scan = 0; scan < 1; scan++){
+
+	//f2 is v2 input
+	f2->SetParameter(0,0.3);//data v2 is about 7% at 185-250.
 	f2->SetParameter(1,0.0);// event plane is at zero.
 
-	f3->SetParameter(0, 6.59660e+04);
-	f3->SetParameter(1, -1.93218e+00);
+	//f3 is pt spectra of input
+	f3->SetParameter(0, 6.59660e+04);//6.5
+	f3->SetParameter(1, -2.0);//-1.9
 	f3->SetParameter(2, -6.91020e-01);
 	f3->SetParameter(3, 1.75804e+01);
 
+	//f5 is mass spectra of input
 	f5->SetParameter(0, 1.0);
-	f5->SetParameter(1, -1.5);
+	f5->SetParameter(1, -1.2);
 	f5->SetParameter(2, 0);
 
+	//daughter composition input
 	daugterSample->SetBinContent(1, 0.7);//PION
-	daugterSample->SetBinContent(2, 0.2);//KAON
-	daugterSample->SetBinContent(3, 0.1);//P
+	daugterSample->SetBinContent(2, 0.1);//KAON
+	daugterSample->SetBinContent(3, 0.05);//P
 
-	double clusterMass = 0.0;//will generate realistically
-	const int Nevents = 10000;
+	NumberOfDau->SetBinContent(1, 0.99);//2 body
+	NumberOfDau->SetBinContent(2, 0.01);//3 body
+	NumberOfDau->SetBinContent(3, 0.0);//4 body
+	NumberOfDau->SetBinContent(4, 0.0);//5 body
+
+	bool doFlow_ = true;	
+	int Ndaughters = 2;//reset later according to contribution
+	const int NclusterToConserveP = 6;
+	const int Nevents = 50000;
+	const int Nclusters = 430;
 
 /*
 */
@@ -63,17 +91,10 @@ temp config
 Generate events with multiplicity 185<Ntrkoffline<250
 */
 	
-
-	Event evt;
-	evt.GenerateEvent(Nevents);
-	vector<int> eventMult = evt.EventSize();
-
 	Cluster clus;
 	
 //Start the event loop:
-	for(int i = 0; i < eventMult.size(); i++){
-
-		//cout << "event: " << i << endl;
+	for(int i = 0; i < Nevents; i++){
 
 		TComplex Q_n3_trk, Q_0_trk;
 
@@ -90,45 +111,26 @@ Generate events with multiplicity 185<Ntrkoffline<250
 		TComplex P_0_1[NetaBins][2], P_0_2[NetaBins][2];
 	
 	/*
-	Generate particles with rho mass
+	Generate events
 	*/
-		int mult = eventMult[i];
-		Ntrkoffline->Fill( mult );
-
 
 		int mult_counting = 0;
 		TVector3 v3(0,0,0);
-		for(int j = 0; j < int(mult); j++){
+		for(int j = 0; j < Nclusters; j++){
 
-			//step3: start to decay
+	//step3: start to generate clusters
+			clus.GenerateCluster( doFlow_, map );
+			vector< double> motherCluster;
+			
+			motherCluster.push_back( clus.GetMomPt() );
+			motherCluster.push_back( clus.GetMomEta() );
+			motherCluster.push_back( clus.GetMomPhi() );
+//			motherCluster.push_back( clus.GetMomMass() );
+			motherCluster.push_back( 0.776 );//rho mass
 
-			/* 
-			start to mess up
-			*/
-			// clus.GenerateCluster(true);
-			// vector< double> motherCluster;
-			// motherCluster.push_back( clus.GetMomPt() );
-			// motherCluster.push_back( clus.GetMomEta() );
-			// motherCluster.push_back( clus.GetMomPhi() );
-			// motherCluster.push_back( clus.GetMomMass() );
-			// motherCluster.push_back( clus.GetMomCharge() );
-	
+			motherCluster.push_back( clus.GetMomCharge() );
 
-			// vector< vector<double>> daugterParticles_total = clus.GetDecayProducts(motherCluster, 3);
-	   		
-
-			//end with messing up
-
-			clusterMass = evt.GetMotherMass();//according to particle ratio;
-		   	//clusterMass = XI;
-
-			evt.GenerateParticle( true, map, clusterMass);
-
-			double pt = evt.GetMomPt();
-			double eta = evt.GetMomEta();
-			double phi = evt.GetMomPhi();
-
-			vector<double> cluster4Momentum = get4Momentum(pt, eta, phi, clusterMass);
+			vector<double> cluster4Momentum = get4Momentum(motherCluster[0], motherCluster[1], motherCluster[2], motherCluster[3]);
 
 			double energy_total = cluster4Momentum[0];
 		    double cluster_px = cluster4Momentum[1];
@@ -138,8 +140,9 @@ Generate events with multiplicity 185<Ntrkoffline<250
 		    TVector3 v1(cluster_px,cluster_py,cluster_pz);
 		    
 			vector<double> motherParticles;
-
-			int k = 20;//local momentum conservation
+	
+	//conserve N clusters' momentum
+			int k = NclusterToConserveP;//local momentum conservation
 			if( j % k != k-1 ){
 
 				v3 += v1;
@@ -151,22 +154,24 @@ Generate events with multiplicity 185<Ntrkoffline<250
 				v3(0) = 0.0; v3(1) = 0.0; v3(2) = 0.0;
 			}
 
-			vector< vector<double>> daugterParticles_total = evt.DecayParticle(motherParticles, clusterMass);//particle decay recursively. 
+			motherParticles.push_back( motherCluster[3] );//mass
+			motherParticles.push_back( motherCluster[4] );//charge
 
-	   		ptspectra->Fill( motherParticles[0] );
-
+	//Cluster decay:
+			Ndaughters = (int) NumberOfDau->GetRandom();
+			vector< vector<double>> daugterParticles_total = clus.GetDecayProducts(motherParticles, Ndaughters);
+			
 		   	for(int i = 0; i < daugterParticles_total.size(); i++){
-
 
 		   		double dau1_pt = daugterParticles_total[i][0];
 			   	double dau1_eta = daugterParticles_total[i][1]*10;//multiply all eta by 10.
 			   	double dau1_phi = daugterParticles_total[i][2];
-			   	double dau1_charge = daugterParticles_total[i][3];//charge
+			   	double dau1_charge = daugterParticles_total[i][4];//charge
 
-			   	if( isnan(dau1_pt) ) continue;
-			   	
-			   	if( dau1_pt > 0.4 && fabs( dau1_eta ) < 2.4 ) mult_counting++;
-			   	
+   				massSpectra->Fill( motherParticles[3] );
+			   	ptspectra->Fill( dau1_pt );
+   				
+			   	if( dau1_pt > 0.4 && fabs( dau1_eta ) < 24 ) {mult_counting++;}
 			   	if( dau1_pt > 0.3 && dau1_pt < 3.0 && fabs(dau1_eta) < 24 ){
 					for(int eta = 0; eta < NetaBins; eta++){
 						if( dau1_eta > etaBins[eta] && dau1_eta < etaBins[eta+1] ){
@@ -293,22 +298,24 @@ Generate events with multiplicity 185<Ntrkoffline<250
 	TCanvas* c10 = new TCanvas();
 	gPad->SetLogy(1);
 	ptspectra->Draw();
-	ptspectra->Fit("expo");
-	c10->Print("pt.pdf");
+	c10->Print(Form("./figures/pt_%d.pdf", scan));
 
 	TCanvas* c11 = new TCanvas();
 	gPad->SetLogy(1);
 	Ntrkoffline_Count->Draw();
-	c11->Print("Ntrk.pdf");
+	c11->Print(Form("./figures/Ntrk_%d.pdf", scan));
 
-	// TCanvas* c12 = new TCanvas();
-	// gPad->SetLogy(1);
-	// massSpectra->Draw();
-	// c12->Print("mass.pdf");
+	TCanvas* c12 = new TCanvas();
+	gPad->SetLogy(1);
+	massSpectra->Draw();
+	c12->Print(Form("./figures/mass_%d.pdf", scan));
 
-	TFile f1("./rootfiles/job_5.root","RECREATE");
+	TFile f1(Form("./rootfiles/decayModel_rho_matchedData.root",scan),"RECREATE");
 	Ntrkoffline->Write();
 	c2_tracker->Write();
+	Ntrkoffline_Count->Write();
+	ptspectra->Write(); 
+	massSpectra->Write();
 
 	for(int sign = 0; sign < 3; sign++){
 		delEta3p[sign]->Write();
@@ -318,5 +325,19 @@ Generate events with multiplicity 185<Ntrkoffline<250
 		}
 	}
 
+	c2_tracker->Delete();  
+	Ntrkoffline->Delete(); 
+	Ntrkoffline_Count->Delete();
+	ptspectra->Delete(); 
+	massSpectra->Delete(); 
+	for(int sign = 0; sign < 3; sign++){
+		delEta3p[sign]->Delete();
+		for(int i = 0; i < NdEtaBins; i++){
+			c3_real[i][sign]->Delete();
+			c2_real[i][sign]->Delete();
+		}
+	}
+
+}
 
 }
